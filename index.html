@@ -274,6 +274,65 @@
     border-color: var(--accent-deep);
   }
 
+  .counters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--mono);
+    font-size: var(--step--1);
+    color: var(--ink-faint);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .counters[hidden] { display: none; }
+
+  .visits {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.35rem 0;
+  }
+
+  .like {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-left: auto;
+    padding: 0.35rem 0.6rem;
+    font: inherit;
+    color: var(--ink-soft);
+    background: transparent;
+    border: 1px solid var(--edge);
+    cursor: pointer;
+    transition: color 140ms ease, border-color 140ms ease;
+  }
+
+  .like:hover:not(:disabled) {
+    color: var(--rust);
+    border-color: var(--rust);
+  }
+
+  .like[aria-pressed="true"] {
+    color: var(--rust);
+    border-color: var(--rust);
+    cursor: default;
+  }
+
+  .like[aria-pressed="true"] svg { fill: var(--rust); }
+
+  .like:disabled { cursor: default; }
+
+  .counters svg {
+    width: 0.95rem;
+    height: 0.95rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
   /* ---------- deck index ---------- */
 
   .index {
@@ -671,6 +730,22 @@
           Email
         </a>
       </div>
+
+      <div class="counters" id="counters" hidden>
+        <span class="visits">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12Z"/>
+            <circle cx="12" cy="12" r="2.6"/>
+          </svg>
+          <span id="visit-count">&#8230;</span> visits
+        </span>
+        <button class="like" type="button" id="like" aria-pressed="false" disabled>
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 20s-7.5-4.6-7.5-9.4A4.1 4.1 0 0 1 12 8.2a4.1 4.1 0 0 1 7.5 2.4C19.5 15.4 12 20 12 20Z"/>
+          </svg>
+          <span id="like-count">&#8230;</span>
+        </button>
+      </div>
     </div>
 
     <nav class="index" id="index" aria-label="Sheets">
@@ -907,6 +982,92 @@
         /* storage blocked, theme still applies for this visit */
       }
     });
+
+    /* ---- visits and likes, counted by abacus.jasoncameron.dev ---- */
+    (function () {
+      var api = 'https://abacus.jasoncameron.dev';
+      var space = 'valentin-baron.github.io';
+      var box = document.getElementById('counters');
+      var likeButton = document.getElementById('like');
+      var visitOut = document.getElementById('visit-count');
+      var likeOut = document.getElementById('like-count');
+      var format = new Intl.NumberFormat('en');
+
+      function ask(path) {
+        return fetch(api + path).then(function (response) {
+          if (!response.ok) {
+            throw new Error(String(response.status));
+          }
+          return response.json();
+        });
+      }
+
+      function alreadyLiked() {
+        try {
+          return localStorage.getItem('liked') === 'yes';
+        } catch (error) {
+          return false;
+        }
+      }
+
+      function countedThisSession() {
+        try {
+          return sessionStorage.getItem('counted') === 'yes';
+        } catch (error) {
+          return false;
+        }
+      }
+
+      function markCounted() {
+        try {
+          sessionStorage.setItem('counted', 'yes');
+        } catch (error) {
+          /* storage blocked, the visit is counted again next reload */
+        }
+      }
+
+      var visitPath = countedThisSession() ? '/get/' : '/hit/';
+
+      Promise.all([
+        ask(visitPath + space + '/visits'),
+        ask('/get/' + space + '/likes').catch(function () {
+          return { value: 0 };
+        })
+      ]).then(function (results) {
+        markCounted();
+        box.hidden = false;
+        visitOut.textContent = format.format(results[0].value);
+        likeOut.textContent = format.format(results[1].value);
+
+        if (alreadyLiked()) {
+          likeButton.setAttribute('aria-pressed', 'true');
+          likeButton.title = 'You liked this page';
+          return;
+        }
+
+        likeButton.disabled = false;
+        likeButton.title = 'Like this page';
+      }).catch(function () {
+        /* Counter nicht erreichbar: die Zeile bleibt einfach aus. */
+      });
+
+      likeButton.addEventListener('click', function () {
+        likeButton.disabled = true;
+
+        ask('/hit/' + space + '/likes').then(function (result) {
+          likeOut.textContent = format.format(result.value);
+          likeButton.setAttribute('aria-pressed', 'true');
+          likeButton.title = 'You liked this page';
+          try {
+            localStorage.setItem('liked', 'yes');
+          } catch (error) {
+            /* storage blocked, the like still counted on the server */
+          }
+        }).catch(function () {
+          likeButton.disabled = false;
+        });
+      });
+    })();
 
     /* ---- the deck of sheets ---- */
     var deck = document.getElementById('deck');
