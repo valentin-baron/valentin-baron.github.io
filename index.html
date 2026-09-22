@@ -1,0 +1,1119 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Valentin Baron, Delphi developer in Germany. An all-in-one ERP and CRM by day, Rust tooling around it.">
+<meta name="color-scheme" content="light dark">
+<meta property="og:title" content="Valentin Baron">
+<meta property="og:description" content="Delphi developer in Germany. An all-in-one ERP and CRM by day, Rust tooling around it.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://valentin-baron.github.io/">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%232D353B'/%3E%3Ctext x='16' y='23' font-family='monospace' font-size='20' font-weight='700' fill='%23A7C080' text-anchor='middle'%3EV%3C/text%3E%3C/svg%3E">
+<title>Valentin Baron</title>
+<style>
+  /* Everforest (sainnhe), medium contrast. Light = default, dark = redefined tokens only. */
+  :root {
+    --ground:      #F3EFDA;
+    --paper:       #FDF6E3;
+    --paper-2:     #F4F0D9;
+    --edge:        #DDD8BE;
+    --edge-soft:   #E8E3CA;
+    --ink:         #5C6A72;
+    --ink-strong:  #404C51;
+    --ink-soft:    #829181;
+    --ink-faint:   #A6B0A0;
+    --accent:      #8DA101;
+    --accent-deep: #6F7F00;
+    --aqua:        #35A77C;
+    --amber:       #DFA000;
+    --rust:        #F57D26;
+    --shadow:      rgba(82, 92, 78, 0.22);
+
+    --mono: ui-monospace, "Cascadia Mono", "JetBrains Mono", Consolas, "SF Mono", Menlo, monospace;
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+
+    --step--1: clamp(0.78rem, 0.76rem + 0.1vw, 0.85rem);
+    --step-0:  clamp(1rem, 0.96rem + 0.2vw, 1.09rem);
+    --step-1:  clamp(1.18rem, 1.1rem + 0.4vw, 1.4rem);
+    --step-2:  clamp(1.5rem, 1.3rem + 0.9vw, 2rem);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground:      #232A2E;
+      --paper:       #2D353B;
+      --paper-2:     #343F44;
+      --edge:        #414B50;
+      --edge-soft:   #3A454A;
+      --ink:         #D3C6AA;
+      --ink-strong:  #E6DFC8;
+      --ink-soft:    #9DA9A0;
+      --ink-faint:   #7A8478;
+      --accent:      #A7C080;
+      --accent-deep: #BCCF95;
+      --aqua:        #83C092;
+      --amber:       #DBBC7F;
+      --rust:        #E69875;
+      --shadow:      rgba(0, 0, 0, 0.45);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --ground:      #232A2E;
+    --paper:       #2D353B;
+    --paper-2:     #343F44;
+    --edge:        #414B50;
+    --edge-soft:   #3A454A;
+    --ink:         #D3C6AA;
+    --ink-strong:  #E6DFC8;
+    --ink-soft:    #9DA9A0;
+    --ink-faint:   #7A8478;
+    --accent:      #A7C080;
+    --accent-deep: #BCCF95;
+    --aqua:        #83C092;
+    --amber:       #DBBC7F;
+    --rust:        #E69875;
+    --shadow:      rgba(0, 0, 0, 0.45);
+  }
+
+  * { box-sizing: border-box; }
+
+  /* Themewechsel: der neue Zustand wird als Kreis vom Schalter aus aufgezogen. */
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
+    mix-blend-mode: normal;
+  }
+
+  ::view-transition-old(root) { z-index: 0; }
+
+  /* Die neue Ebene startet leer, sonst blitzt sie ein Bild lang voll auf,
+     bevor die Wischanimation ueberhaupt laeuft. */
+  ::view-transition-new(root) {
+    z-index: 1;
+    clip-path: polygon(0 0, 0 0, 0 0);
+  }
+
+  /* Wenn der Browser keine View Transitions kann, faerben die Flaechen weich um. */
+  :root.theme-fade,
+  :root.theme-fade * {
+    transition: background-color 900ms ease, color 900ms ease, border-color 900ms ease,
+                box-shadow 900ms ease, fill 900ms ease, stroke 900ms ease;
+  }
+
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--serif);
+    font-size: var(--step-0);
+    line-height: 1.65;
+  }
+
+  a {
+    color: var(--ink-strong);
+    text-decoration-color: var(--edge);
+    text-underline-offset: 3px;
+  }
+
+  a:hover { text-decoration-color: var(--accent); }
+
+  a:focus-visible,
+  button:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+  }
+
+  .shell {
+    max-width: 1220px;
+    margin: 0 auto;
+    padding: clamp(1.5rem, 4vw, 3.5rem) clamp(1rem, 4vw, 2.5rem) clamp(3rem, 6vw, 5rem);
+    display: grid;
+    grid-template-columns: minmax(0, 19rem) minmax(0, 1fr);
+    gap: clamp(1.8rem, 4vw, 3.5rem);
+    align-items: start;
+  }
+
+  /* ---------- identity rail ---------- */
+
+  .rail {
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+    position: sticky;
+    top: clamp(1.5rem, 4vw, 3.5rem);
+  }
+
+  .card-id {
+    position: relative;
+    background: var(--paper);
+    border: 1px solid var(--edge);
+    box-shadow: 0 1px 0 var(--edge-soft), 0 14px 28px -20px var(--shadow);
+    padding: 1.4rem 1.35rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+  }
+
+  .theme-toggle {
+    position: absolute;
+    top: 0.55rem;
+    right: 0.55rem;
+    width: 1.9rem;
+    height: 1.9rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    background: transparent;
+    border: 1px solid var(--edge);
+    color: var(--ink-faint);
+    cursor: pointer;
+    transition: color 140ms ease, border-color 140ms ease;
+  }
+
+  .theme-toggle:hover {
+    color: var(--accent-deep);
+    border-color: var(--accent);
+  }
+
+  .theme-toggle svg {
+    width: 1rem;
+    height: 1rem;
+    display: none;
+  }
+
+  .theme-toggle[data-mode="auto"] .icon-auto,
+  .theme-toggle[data-mode="light"] .icon-light,
+  .theme-toggle[data-mode="dark"] .icon-dark { display: block; }
+
+  .avatar {
+    width: clamp(9rem, 72%, 12rem);
+    aspect-ratio: 1;
+    height: auto;
+    display: block;
+    align-self: center;
+    object-fit: cover;
+    border: 1px solid var(--edge);
+    background: var(--paper-2);
+    filter: saturate(0.9);
+  }
+
+  .name {
+    font-family: var(--mono);
+    font-size: clamp(1.8rem, 1.2rem + 2vw, 2.5rem);
+    line-height: 1.04;
+    font-weight: 700;
+    letter-spacing: -0.035em;
+    color: var(--ink-strong);
+    margin: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .role {
+    font-family: var(--mono);
+    font-size: var(--step--1);
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--accent-deep);
+    margin: 0;
+  }
+
+  .blurb {
+    margin: 0;
+    font-size: var(--step--1);
+    line-height: 1.7;
+    color: var(--ink-soft);
+  }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .action {
+    flex: 1 1 8rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-family: var(--mono);
+    font-size: var(--step--1);
+    letter-spacing: 0.05em;
+    padding: 0.6rem 0.8rem;
+    text-decoration: none;
+    color: var(--accent-deep);
+    background: color-mix(in srgb, var(--accent) 14%, var(--paper));
+    border: 1px solid var(--accent);
+    transition: color 140ms ease, border-color 140ms ease, background 140ms ease;
+  }
+
+  .action svg {
+    width: 1.05em;
+    height: 1.05em;
+    fill: currentColor;
+    flex: none;
+  }
+
+  .action:hover {
+    color: var(--paper);
+    background: var(--accent-deep);
+    border-color: var(--accent-deep);
+  }
+
+  /* ---------- deck index ---------- */
+
+  .index {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+
+  .index-label {
+    font-family: var(--mono);
+    font-size: var(--step--1);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--edge);
+    margin-bottom: 0.4rem;
+  }
+
+  .index button {
+    font-family: var(--mono);
+    font-size: var(--step--1);
+    text-align: left;
+    background: none;
+    border: 0;
+    border-left: 2px solid transparent;
+    color: var(--ink-soft);
+    padding: 0.35rem 0 0.35rem 0.7rem;
+    cursor: pointer;
+    transition: color 140ms ease, border-color 140ms ease;
+  }
+
+  .index button:hover { color: var(--ink-strong); }
+
+  .index button[aria-current="true"] {
+    color: var(--accent-deep);
+    border-left-color: var(--accent);
+  }
+
+  .hint {
+    margin: 0;
+    font-family: var(--mono);
+    font-size: var(--step--1);
+    line-height: 1.6;
+    color: var(--ink-faint);
+  }
+
+  /* ---------- the deck ---------- */
+
+  .deck {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(1.5rem, 3vw, 2.2rem);
+    min-width: 0;
+  }
+
+  .sheet {
+    position: relative;
+    background: var(--paper);
+    border: 1px solid var(--edge);
+    box-shadow: 0 1px 0 var(--edge-soft), 0 18px 40px -28px var(--shadow);
+    padding: clamp(1.4rem, 3vw, 2.4rem);
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
+    min-width: 0;
+  }
+
+  /* Papierkorn: statisches SVG-Rauschen, keine Bewegung */
+  .sheet::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.05;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  .sheet > * { position: relative; z-index: 1; }
+
+  .sheet { overflow: hidden; }
+
+  .cat {
+    position: absolute;
+    top: 0.7rem;
+    right: 0.4rem;
+    width: clamp(8rem, 22%, 13rem);
+    height: auto;
+    z-index: 0;
+    color: var(--ink-faint);
+    opacity: 0.18;
+    rotate: 15deg;
+    pointer-events: none;
+  }
+
+  .lede {
+    margin: 0;
+    font-size: var(--step-1);
+    line-height: 1.5;
+    color: var(--ink-strong);
+  }
+
+  .prose {
+    margin: 0;
+  }
+
+  .sub {
+    margin: 0.6rem 0 0;
+    font-family: var(--mono);
+    font-size: var(--step-0);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--ink-strong);
+  }
+
+  .sheet .sub:first-of-type { margin-top: 0; }
+
+  .prose strong {
+    color: var(--ink-strong);
+    font-weight: 600;
+  }
+
+  /* Deck-Modus: Blätter liegen gestapelt übereinander, per Klasse geschaltet */
+  .deck.is-deck {
+    display: grid;
+    gap: 0;
+    isolation: isolate;
+  }
+
+  .deck.is-deck .sheet {
+    grid-area: 1 / 1;
+    z-index: var(--z, 1);
+    rotate: var(--rot, 0deg);
+    transform-origin: 50% 92%;
+    transition: rotate 320ms ease, box-shadow 320ms ease;
+  }
+
+  .deck.is-deck .sheet[data-top="false"] {
+    box-shadow: 0 1px 0 var(--edge-soft), 0 10px 26px -22px var(--shadow);
+  }
+
+  .deck.is-deck .sheet[data-top="true"] {
+    rotate: 0deg;
+    box-shadow: 0 2px 0 var(--edge-soft), 0 30px 60px -34px var(--shadow);
+  }
+
+  .deck.is-deck .sheet:not([data-top="true"]) { cursor: pointer; }
+
+  .table-wrap { overflow-x: auto; }
+
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    min-width: 32rem;
+    font-size: var(--step--1);
+  }
+
+  th, td {
+    text-align: left;
+    vertical-align: baseline;
+    padding: 0.6rem 1rem 0.6rem 0;
+    border-bottom: 1px solid var(--edge-soft);
+  }
+
+  thead th {
+    font-family: var(--mono);
+    font-weight: 400;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    border-bottom: 1px solid var(--edge);
+  }
+
+  tbody th {
+    font-family: var(--mono);
+    font-weight: 700;
+    color: var(--ink-strong);
+    white-space: nowrap;
+  }
+
+  td.since {
+    font-family: var(--mono);
+    font-variant-numeric: tabular-nums;
+    color: var(--ink-soft);
+    white-space: nowrap;
+  }
+
+  tbody tr:last-child th,
+  tbody tr:last-child td { border-bottom: 0; }
+
+  .footnote {
+    margin: 0;
+    font-size: var(--step--1);
+    color: var(--ink-soft);
+  }
+
+  /* ---------- projects ---------- */
+
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+    gap: 1px;
+    background: var(--edge);
+    border: 1px solid var(--edge);
+  }
+
+  .project {
+    background: var(--paper);
+    padding: 1.05rem 1.1rem 1.15rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+    transition: background 140ms ease;
+  }
+
+  .project:hover { background: var(--paper-2); }
+
+  .project h3 {
+    margin: 0;
+    font-family: var(--mono);
+    font-size: var(--step-0);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  .project h3 a { text-decoration: none; }
+
+  .project h3 a:hover {
+    color: var(--accent-deep);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .project p {
+    margin: 0;
+    font-size: var(--step--1);
+    line-height: 1.6;
+    color: var(--ink-soft);
+    flex: 1;
+  }
+
+  .meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem 0.8rem;
+    font-family: var(--mono);
+    font-size: var(--step--1);
+    color: var(--ink-faint);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .lang {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--ink-soft);
+  }
+
+  .dot {
+    width: 0.55em;
+    height: 0.55em;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+
+  .dot.rust   { background: var(--rust); }
+  .dot.csharp { background: var(--aqua); }
+  .dot.python { background: var(--amber); }
+
+  .stars { color: var(--amber); }
+
+  /* ---------- screenshots ---------- */
+
+  .shots {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
+    gap: 1.2rem;
+    margin: 0;
+  }
+
+  .shots figure {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+  }
+
+  .shots img {
+    width: 100%;
+    height: auto;
+    display: block;
+    border: 1px solid var(--edge);
+    background: var(--paper-2);
+  }
+
+  .shots figcaption {
+    font-family: var(--mono);
+    font-size: var(--step--1);
+    color: var(--ink-faint);
+    line-height: 1.55;
+  }
+
+  /* ---------- older projects ---------- */
+
+  .archive {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .archive li {
+    display: grid;
+    grid-template-columns: minmax(9rem, auto) minmax(0, 1fr);
+    gap: 0.3rem 1.2rem;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--edge-soft);
+    align-items: baseline;
+  }
+
+  .archive li:last-child { border-bottom: 0; }
+
+  .archive a {
+    font-family: var(--mono);
+    font-size: var(--step--1);
+    text-decoration: none;
+  }
+
+  .archive a:hover {
+    color: var(--accent-deep);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .archive span {
+    font-size: var(--step--1);
+    color: var(--ink-soft);
+  }
+
+  /* ---------- contact ---------- */
+
+  .colophon {
+    font-family: var(--mono);
+    font-size: var(--step--1);
+    color: var(--ink-faint);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1.5rem;
+    justify-content: space-between;
+  }
+
+  @media (max-width: 899px) {
+    .shell {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 2rem;
+    }
+
+    .rail { position: static; }
+
+    .index,
+    .hint { display: none; }
+  }
+</style>
+
+</head>
+<body>
+<div class="shell">
+  <aside class="rail">
+    <div class="card-id">
+      <button class="theme-toggle" type="button" id="theme-toggle" data-mode="auto" title="Theme: auto">
+        <span class="visually-hidden">Theme</span>
+        <svg class="icon-auto" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+          <circle cx="12" cy="12" r="8"/>
+          <path d="M12 4a8 8 0 0 1 0 16Z" fill="currentColor" stroke="none"/>
+        </svg>
+        <svg class="icon-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="4.5"/>
+          <path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.2 5.2l1.4 1.4M17.4 17.4l1.4 1.4M18.8 5.2l-1.4 1.4M6.6 17.4l-1.4 1.4"/>
+        </svg>
+        <svg class="icon-dark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true">
+          <path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5Z"/>
+        </svg>
+      </button>
+      <h1 class="name">Valentin<br>Baron</h1>
+      <img class="avatar" src="assets/avatar.png" alt="" width="400" height="400">
+      <p class="role">Senior Delphi Developer</p>
+      <p class="blurb">I work on a large all-in-one ERP and CRM written in Delphi, and I write the tools around it in Rust.</p>
+      <div class="actions">
+        <a class="action" href="https://github.com/valentin-baron" rel="me noopener">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
+          GitHub
+        </a>
+        <a class="action" href="mailto:contact.valentin.baron@proton.me">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 5.5A1.5 1.5 0 0 1 3.5 4h17A1.5 1.5 0 0 1 22 5.5v13a1.5 1.5 0 0 1-1.5 1.5h-17A1.5 1.5 0 0 1 2 18.5v-13Zm2.2.5 7.8 6.03L19.8 6H4.2ZM20 7.6l-7.39 5.71a1 1 0 0 1-1.22 0L4 7.6V18h16V7.6Z"/></svg>
+          Email
+        </a>
+      </div>
+    </div>
+
+    <nav class="index" id="index" aria-label="Sheets">
+      <p class="index-label">On the desk</p>
+    </nav>
+
+    <p class="hint" id="hint">Scroll or use the arrow keys to turn the page.</p>
+
+  </aside>
+
+  <div class="deck" id="deck">
+    <article class="sheet" data-title="About" aria-label="About">
+      <p class="lede">Delphi pays the bills. Almost everything else I write is tooling for Delphi, and that part is in Rust.</p>
+      <p class="prose">I have been on the same all-in-one ERP and CRM since 2017. Not much of my work there is screens. It is async data loading, a scheduler, REST services, a package manager, role and permission administration, and the database update path. On top of that a DUnitX test suite and a layer that drives the application for UI tests.</p>
+      <p class="prose"><strong>DDK</strong>, the Delphi Devkit, started because I wanted to work on Delphi code in VS Code and nothing existed for it. The other Rust projects came out of the same job. Some of it I write at work, some at home.</p>
+    </article>
+
+    <article class="sheet" data-title="Experience" aria-label="Experience">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Language</th>
+              <th scope="col">Since</th>
+              <th scope="col">What I build with it</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row">Delphi</th>
+              <td class="since">2017</td>
+              <td>The day job. The ERP and CRM backend, VCL forms and components, async data loading, services, database updates and migrations. The components in that stack are DevExpress, ReportBuilder, TRichView, Woll2Woll and wPDF, with Indy underneath anything that talks over a network and DUnitX for the tests.</td>
+            </tr>
+            <tr>
+              <th scope="row">SQL</th>
+              <td class="since">2017</td>
+              <td>Advantage Database Server, including its dictionaries and the ways it breaks. Postgres for anything newer, SQLite when a file is enough.</td>
+            </tr>
+            <tr>
+              <th scope="row">Rust</th>
+              <td class="since">2024</td>
+              <td>Where new tools start now. Language tooling, CLIs, file-format parsers, a WebSocket client.</td>
+            </tr>
+            <tr>
+              <th scope="row">Python</th>
+              <td class="since">2020</td>
+              <td>Discord bots and small services. discord.py and aiohttp.</td>
+            </tr>
+            <tr>
+              <th scope="row">TypeScript</th>
+              <td class="since">2020</td>
+              <td>VS Code extensions, and the editor side of the Delphi tooling.</td>
+            </tr>
+            <tr>
+              <th scope="row">C#</th>
+              <td class="since">2025</td>
+              <td>Small Windows utilities that sit in the tray and stay out of the way.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="footnote">Also around, without claiming any depth: YAML for package and service definitions, PowerShell for Windows automation, and QML, which my Hyprland shell fork is written in.</p>
+    </article>
+
+    <article class="sheet" data-title="Currently" aria-label="Currently">
+      <svg class="cat" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+        <path d="M12 5c.67 0 1.35.09 2 .26 1.78-2 5.03-2.84 6.42-2.26 1.4.58-.42 7-.42 7 .57 1.07 1 2.24 1 3.44C21 17.9 16.97 21 12 21s-9-3-9-7.56c0-1.25.5-2.4 1-3.44 0 0-1.89-6.42-.5-7 1.39-.58 4.72.23 6.5 2.23A9.04 9.04 0 0 1 12 5Z"/>
+        <path d="M8 14v.5"/>
+        <path d="M16 14v.5"/>
+        <path d="M11.25 16.25h1.5L12 17l-.75-.75Z"/>
+      </svg>
+      <h3 class="sub">Low-frequency radio, or cat as a service</h3>
+      <p class="prose">My cats start roaming the moment we arrive at our holiday house, which sits in a village outside Germany. That rules out GPS trackers: they talk to your phone over LTE, and abroad that gets expensive fast. The usual alternative is a radio tracker. I bought one, but it works on high-frequency 2.4 GHz radio, so the range is short and the village is not.</p>
+      <p class="prose">So I am building my own: a static antenna at the house, a handheld one to walk around with, and a LoRa tracker built into the cats' suits.</p>
+
+      <h3 class="sub">Home setup</h3>
+      <p class="prose">My PC and my laptop both run Hyprland with my own fork of <a href="https://github.com/valentin-baron/caelestia-shell" rel="noopener">caelestia-shell</a>. With that and git, and AI for the tedious parts, changing anything is quick, both machines stay in sync, and a fresh system is back to my setup with one command.</p>
+    </article>
+
+    <article class="sheet" data-title="Projects" aria-label="Projects">
+      <div class="cards">
+        <article class="project">
+          <h3><a href="https://github.com/valentin-baron/delphi-devkit" rel="noopener">DDK - Delphi Devkit</a></h3>
+          <p>Delphi in VS Code: language tooling, project handling and a build CLI that picks the right compiler. You can work on a Delphi project without opening the RAD IDE.</p>
+          <p class="meta"><span class="lang"><span class="dot rust"></span>Rust</span>
+            <span class="stars">&#9733; 21</span>
+            <span>active</span>
+          </p>
+        </article>
+
+        <article class="project">
+          <h3><a href="https://github.com/valentin-baron/dproj-rs" rel="noopener">dproj-rs</a></h3>
+          <p>Reads Delphi <code>.dproj</code> files. MSBuild XML goes in, configurations, search paths and unit references come out.</p>
+          <p class="meta"><span class="lang"><span class="dot rust"></span>Rust</span>
+            <span>library</span>
+          </p>
+        </article>
+
+        <article class="project">
+          <h3><a href="https://github.com/valentin-baron/rocketsocket" rel="noopener">rocketsocket</a></h3>
+          <p>Rocket.Chat realtime API over WebSocket, with typed subscriptions and method calls instead of JSON pushed down a socket by hand.</p>
+          <p class="meta"><span class="lang"><span class="dot rust"></span>Rust</span>
+            <span>framework</span>
+          </p>
+        </article>
+
+        <article class="project">
+          <h3><a href="https://github.com/valentin-baron/timestamp-hotkey" rel="noopener">timestamp-hotkey</a></h3>
+          <p>Ctrl+Numpad&#42; pastes the current timestamp into the focused window. I use it every day.</p>
+          <p class="meta"><span class="lang"><span class="dot csharp"></span>C#</span>
+            <span>Windows</span>
+          </p>
+        </article>
+      </div>
+    </article>
+
+    <article class="sheet" data-title="DDK - Delphi Devkit" aria-label="DDK - Delphi Devkit">
+      <div class="shots">
+        <figure>
+          <img src="assets/compile_selected_project.gif" alt="Compiling a selected Delphi project from inside VS Code, with compiler output in the terminal panel." loading="lazy" width="749" height="854">
+          <figcaption>Compiling a project from the editor.</figcaption>
+        </figure>
+        <figure>
+          <img src="assets/formatter.gif" alt="The Delphi formatter reindenting a unit in VS Code." loading="lazy" width="899" height="583">
+          <figcaption>The formatter running over a unit.</figcaption>
+        </figure>
+      </div>
+    </article>
+
+    <article class="sheet" data-title="Older works" aria-label="Older works">
+      <ul class="archive">
+        <li>
+          <a href="https://github.com/valentin-baron/krile-eureka" rel="noopener">krile-eureka</a>
+          <span>Discord bot for Eureka forays in Final Fantasy XIV: schedules, roles, signups. Python, discord.py, aiohttp.</span>
+        </li>
+        <li>
+          <a href="https://github.com/valentin-baron/py-centralized-data" rel="noopener">py-centralized-data</a>
+          <span>Small Python library for state that several parts of an app share.</span>
+        </li>
+      </ul>
+    </article>
+
+    <article class="sheet" data-title="Imprint" aria-label="Imprint">
+      <p class="prose">Valentin Baron, Germany. This is my personal site. It sets no cookies and loads nothing from third parties.</p>
+      <p class="prose">&copy; 2026 Valentin Baron. All rights reserved. The text and the images here are mine and are not free to reuse, copy or pass on. The source code in the linked repositories is a different matter: each one carries its own licence, and that licence is what counts there.</p>
+      <p class="colophon"><span>Colours: <a href="https://github.com/sainnhe/everforest" rel="noopener">Everforest</a> by sainnhe</span>
+        <span>Cat drawing: <a href="https://lucide.dev/" rel="noopener">Lucide</a></span>
+      </p>
+    </article>
+
+  </div>
+</div>
+
+<script>
+  (function () {
+    var root = document.documentElement;
+
+    /* ---- theme ---- */
+    var toggle = document.getElementById('theme-toggle');
+    var modes = ['auto', 'light', 'dark'];
+
+    function applyTheme(mode) {
+      if (mode === 'auto') {
+        root.removeAttribute('data-theme');
+      } else {
+        root.setAttribute('data-theme', mode);
+      }
+      toggle.dataset.mode = mode;
+      toggle.title = 'Theme: ' + mode;
+      toggle.setAttribute('aria-label', 'Theme: ' + mode + '. Click to change.');
+    }
+
+    var storedTheme = null;
+    try {
+      storedTheme = localStorage.getItem('theme');
+    } catch (error) {
+      storedTheme = null;
+    }
+
+    var themeMode = modes.indexOf(storedTheme) >= 0 ? storedTheme : 'auto';
+    applyTheme(themeMode);
+
+    var reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+    function diagonal(progress) {
+      /* Halbebene x + y <= k als Dreieck, das von oben links nach unten rechts waechst. */
+      var reach = window.innerWidth + window.innerHeight;
+      var margin = reach + 400;
+      var k = progress * reach;
+      return 'polygon(' +
+        (k + margin) + 'px ' + (-margin) + 'px, ' +
+        (-margin) + 'px ' + (-margin) + 'px, ' +
+        (-margin) + 'px ' + (k + margin) + 'px)';
+    }
+
+    function sweep(mode) {
+      var duration = reduced.matches ? 450 : 1100;
+
+      if (!document.startViewTransition) {
+        root.classList.add('theme-fade');
+        applyTheme(mode);
+        window.setTimeout(function () {
+          root.classList.remove('theme-fade');
+        }, duration);
+        return;
+      }
+
+      var transition = document.startViewTransition(function () {
+        applyTheme(mode);
+      });
+
+      transition.ready.then(function () {
+        root.animate(
+          { clipPath: [diagonal(0), diagonal(1)] },
+          {
+            duration: duration,
+            easing: 'cubic-bezier(.65,0,.35,1)',
+            fill: 'forwards',
+            pseudoElement: '::view-transition-new(root)'
+          }
+        );
+      }).catch(function () {
+        /* Transition abgebrochen, das Theme steht trotzdem */
+      });
+    }
+
+    toggle.addEventListener('click', function () {
+      themeMode = modes[(modes.indexOf(themeMode) + 1) % modes.length];
+      sweep(themeMode);
+      try {
+        localStorage.setItem('theme', themeMode);
+      } catch (error) {
+        /* storage blocked, theme still applies for this visit */
+      }
+    });
+
+    /* ---- the deck of sheets ---- */
+    var deck = document.getElementById('deck');
+    var index = document.getElementById('index');
+    var sheets = Array.prototype.slice.call(deck.querySelectorAll('.sheet'));
+    var count = sheets.length;
+    var current = 0;
+    var calm = window.matchMedia('(prefers-reduced-motion: reduce)');
+    var tilt = [-1.1, 0.8, -0.6, 1.2, -0.9, 0.5];
+    var buttons = [];
+    var busy = false;
+
+    sheets.forEach(function (sheet, i) {
+      sheet.style.setProperty('--rot', tilt[i % tilt.length] + 'deg');
+
+      var button = document.createElement('button');
+      button.type = 'button';
+      button.textContent = sheet.dataset.title;
+      button.addEventListener('click', function () {
+        jump(i);
+      });
+      index.appendChild(button);
+      buttons.push(button);
+
+      sheet.addEventListener('click', function (event) {
+        if (!inDeckMode() || i === current) {
+          return;
+        }
+        if (event.target.closest('a, button')) {
+          return;
+        }
+        jump(i);
+      });
+    });
+
+    function inDeckMode() {
+      return deck.classList.contains('is-deck');
+    }
+
+    function wrap(i) {
+      return ((i % count) + count) % count;
+    }
+
+    /* Stapel von oben nach unten: current, current-1, current-2, ...
+       Zuunterst liegt damit immer current+1, das naechste Kapitel. */
+    function paint() {
+      var deckMode = inDeckMode();
+
+      for (var depth = 0; depth < count; depth++) {
+        var sheetIndex = wrap(current - depth);
+        var sheet = sheets[sheetIndex];
+        var top = depth === 0;
+        sheet.style.setProperty('--z', String(count - depth));
+        sheet.dataset.top = String(top);
+        sheet.inert = deckMode && !top;
+        buttons[sheetIndex].setAttribute('aria-current', String(deckMode && top));
+      }
+    }
+
+    var PARKED = 'translate3d(44%, 4%, 0) rotate(5deg)';
+
+    /* Ein Blatt unter dem Stapel hervorziehen und obenauf legen.
+       Phase 1 zieht es nach rechts heraus, dann wechselt die Lage, Phase 2 legt es auf. */
+    function pull(sheetIndex, nextCurrent) {
+      var sheet = sheets[sheetIndex];
+
+      if (!inDeckMode() || !sheet.animate) {
+        current = nextCurrent;
+        paint();
+        return;
+      }
+
+      busy = true;
+
+      var scale = calm.matches ? 0.45 : 1;
+
+      var out = sheet.animate(
+        [{ transform: 'translate3d(0, 0, 0) rotate(0deg)' }, { transform: PARKED }],
+        { duration: 300 * scale, easing: 'cubic-bezier(.32,0,.24,1)', fill: 'forwards' }
+      );
+
+      out.finished.then(function () {
+        current = nextCurrent;
+        paint();
+
+        var back = sheet.animate(
+          [{ transform: PARKED }, { transform: 'translate3d(0, 0, 0) rotate(0deg)' }],
+          { duration: 380 * scale, easing: 'cubic-bezier(.22,.68,.24,1)', fill: 'forwards' }
+        );
+
+        out.cancel();
+
+        return back.finished.then(function () {
+          back.cancel();
+        });
+      }).then(function () {
+        busy = false;
+      }, function () {
+        busy = false;
+      });
+    }
+
+    function step(direction) {
+      if (busy || count < 2) {
+        return;
+      }
+
+      if (direction > 0) {
+        /* vorwaerts: das Blatt zuunterst ist das naechste Kapitel */
+        pull(wrap(current + 1), wrap(current + 1));
+      } else {
+        /* rueckwaerts: das oberste Blatt wandert nach unten zurueck */
+        pull(current, wrap(current - 1));
+      }
+    }
+
+    function jump(sheetIndex) {
+      if (!inDeckMode()) {
+        sheets[sheetIndex].scrollIntoView({
+          behavior: calm.matches ? 'auto' : 'smooth',
+          block: 'start'
+        });
+        return;
+      }
+
+      if (busy || sheetIndex === current) {
+        return;
+      }
+
+      pull(sheetIndex, sheetIndex);
+    }
+
+    /* Ein Mausrad-Tick am Seitenende blaettert ein Kapitel weiter. */
+    var wheelSum = 0;
+    var wheelReset = 0;
+
+    window.addEventListener('wheel', function (event) {
+      if (!inDeckMode() || event.ctrlKey) {
+        return;
+      }
+
+      var atTop = window.scrollY <= 2;
+      var atBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2;
+      var forward = event.deltaY > 0;
+
+      if (forward ? !atBottom : !atTop) {
+        wheelSum = 0;
+        return;
+      }
+
+      event.preventDefault();
+
+      if (busy) {
+        return;
+      }
+
+      window.clearTimeout(wheelReset);
+      wheelReset = window.setTimeout(function () { wheelSum = 0; }, 220);
+
+      if (wheelSum !== 0 && (wheelSum > 0) !== forward) {
+        wheelSum = 0;
+      }
+
+      wheelSum += event.deltaY;
+
+      if (Math.abs(wheelSum) < 40) {
+        return;
+      }
+
+      wheelSum = 0;
+      step(forward ? 1 : -1);
+    }, { passive: false });
+
+    document.addEventListener('keydown', function (event) {
+      if (!inDeckMode() || event.metaKey || event.ctrlKey || event.altKey) {
+        return;
+      }
+
+      if (event.target.closest('a, button, input, textarea, select')) {
+        return;
+      }
+
+      if (event.key === 'ArrowDown' || event.key === 'ArrowRight' || event.key === 'PageDown') {
+        event.preventDefault();
+        step(1);
+      } else if (event.key === 'ArrowUp' || event.key === 'ArrowLeft' || event.key === 'PageUp') {
+        event.preventDefault();
+        step(-1);
+      }
+    });
+
+    var hint = document.getElementById('hint');
+
+    function layout() {
+      deck.classList.toggle('is-deck', deck.clientWidth >= 420);
+      hint.hidden = !inDeckMode();
+      paint();
+    }
+
+    if (window.ResizeObserver) {
+      new window.ResizeObserver(layout).observe(deck.parentNode);
+    } else {
+      window.addEventListener('resize', layout);
+    }
+
+    layout();
+  })();
+</script>
+</body>
+</html>
